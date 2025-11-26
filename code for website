@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Richard's Mistake</title>
+  <style>
+    :root{
+      --bg:#0f1415;
+      --panel:#174e4b;
+      --panel-dark:#0f3a39;
+      --accent:#66f0e8;
+      --muted:#9adad6;
+      --btn:#073434;
+      --btn-text:#c8fff9;
+      font-family: 'Segoe UI', Roboto, system-ui, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--muted)}
+    .app{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px}
+
+    /* responsive "phone" frame that scales */
+    .frame{width:100%;max-width:420px;background:linear-gradient(#173c3b,#123733);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.6);overflow:hidden}
+    header{background:var(--panel-dark);padding:18px 16px;border-bottom:4px solid #072826}
+    header h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:1px}
+    header p{margin:6px 0 0;font-size:12px;color:#bdeeea}
+
+    main{padding:20px}
+    .intro{font-size:13px;line-height:1.4;color:#cbeeea}
+    .big-card{background:rgba(0,0,0,0.06);padding:12px;border-radius:8px;margin-top:16px}
+    .btn-row{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+    .btn{background:var(--btn);padding:12px;border-radius:8px;text-align:center;color:var(--btn-text);font-weight:700;cursor:pointer;border:2px solid rgba(0,0,0,0.2)}
+    .btn:active{transform:translateY(1px)}
+
+    .nav{display:flex;gap:6px;padding:12px;background:var(--panel-dark);justify-content:space-between}
+    .nav a{color:var(--muted);font-size:13px;text-decoration:none}
+
+    .hint-title{color:var(--accent);font-weight:800;margin-bottom:10px}
+    .hint-sub{font-size:12px;color:#bfeeea;margin-bottom:12px}
+    .thumb{width:100%;height:auto;border-radius:6px;border:3px solid var(--panel-dark);display:block;margin-top:14px}
+    .long-column{max-height:520px;overflow:auto;padding-right:8px}
+    .section{margin-bottom:16px}
+    .home-link{display:inline-block;margin-top:16px;color:var(--muted);background:transparent;border:0;padding:8px 10px;cursor:pointer}
+
+    /* lock overlay */
+    .locked-overlay{position:relative}
+    .locked-banner{margin-top:12px;padding:10px;border-radius:6px;background:#3f1b1b;color:#ffdede;font-weight:700;text-align:center}
+    .password-row{display:flex;gap:8px;margin-top:12px}
+    .password-row input{flex:1;padding:10px;border-radius:6px;border:2px solid rgba(0,0,0,0.2);background:transparent;color:var(--muted)}
+    .password-row button{padding:10px 12px;border-radius:6px;border:2px solid rgba(0,0,0,0.2);background:var(--btn);color:var(--btn-text);font-weight:700}
+    .hint-buttons[aria-hidden="true"]{opacity:0.14;pointer-events:none}
+
+    /* responsive tweaks */
+    @media(min-width:700px){
+      .frame{max-width:360px}
+    }
+    @media(min-width:1000px){
+      .frame{max-width:420px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="frame" id="view-frame">
+      <header>
+        <h1 id="page-title">Richard's Mistake</h1>
+        <p id="page-sub">a puzzle-adventure prototype</p>
+      </header>
+
+      <main id="main-content">
+        <!-- HOME -->
+        <div id="home" class="view">
+          <div class="intro">Welcome to a short prototype inspired by the design you provided. Open the Hints panel to unlock each hint box with its password. If you enter the wrong password a single panel will lock until reload.</div>
+
+          <div class="big-card long-column">
+            <div class="section">
+              <strong style="color:var(--accent)">About the game</strong>
+              <p style="font-size:13px">A short description and lore area. This panel reproduces that feel and scales to any screen width.</p>
+            </div>
+
+            <div class="section">
+              <strong style="color:var(--accent)">Open hints</strong>
+              <div class="btn-row">
+                <div class="btn" data-target="password_screen">Open Hints</div>
+              </div>
+            </div>
+
+            <img class="thumb" src="/mnt/data/Screenshot 2025-11-25 200356.png" alt="design mockup screenshot">
+          </div>
+        </div>
+
+        <!-- PASSWORD SCREEN (three panels) -->
+        <div id="password_screen" class="view" style="display:none">
+          <div class="hint-title">Hints — Password Panel</div>
+          <div class="hint-sub">Enter the correct password for each box to enable its button. Wrong attempts lock that box until the page is reloaded.</div>
+
+          <div class="big-card">
+            <div class="section" id="panel-hint1" data-pass="red">
+              <strong style="color:var(--accent)">Hint 1</strong>
+              <p>Title: The Red Box</p>
+              <div class="password-row">
+                <input name="pw1" placeholder="Password for Hint 1" autocomplete="off">
+                <button onclick="unlockPanel('hint1','pw1', this)">Unlock</button>
+              </div>
+              <div style="margin-top:10px">
+                <button class="btn" id="open_hint1_btn" onclick="showView('hint1_unlocked')" disabled>Open Hint 1</button>
+                <div class="locked-banner" style="display:none">Locked — wrong password. Reload to try again.</div>
+              </div>
+            </div>
+
+            <div class="section" id="panel-hint2" data-pass="blue">
+              <strong style="color:var(--accent)">Hint 2</strong>
+              <p>Title: The Blue Chest</p>
+              <div class="password-row">
+                <input name="pw2" placeholder="Password for Hint 2" autocomplete="off">
+                <button onclick="unlockPanel('hint2','pw2', this)">Unlock</button>
+              </div>
+              <div style="margin-top:10px">
+                <button class="btn" id="open_hint2_btn" onclick="showView('hint2_unlocked')" disabled>Open Hint 2</button>
+                <div class="locked-banner" style="display:none">Locked — wrong password. Reload to try again.</div>
+              </div>
+            </div>
+
+            <div class="section" id="panel-hint3" data-pass="green">
+              <strong style="color:var(--accent)">Hint 3</strong>
+              <p>Title: The Green Vault</p>
+              <div class="password-row">
+                <input name="pw3" placeholder="Password for Hint 3" autocomplete="off">
+                <button onclick="unlockPanel('hint3','pw3', this)">Unlock</button>
+              </div>
+              <div style="margin-top:10px">
+                <button class="btn" id="open_hint3_btn" onclick="showView('hint3_unlocked')" disabled>Open Hint 3</button>
+                <div class="locked-banner" style="display:none">Locked — wrong password. Reload to try again.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+        <!-- HINT PAGES (simplified: no sections, only a home button on each page) -->
+        <div id="hint1_unlocked" class="view" style="display:none">
+          <div class="hint-title">Hint 1 — Unlocked</div>
+          <p><strong>Title:</strong> The Red Box</p>
+          <p>Clue A: A small key hides beneath the third step.</p>
+          <p>Clue B: The symbol repeats twice in the painting.</p>
+          <p>Clue C: Listen for the hollow when you knock.</p>
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+        <div id="hint2_unlocked" class="view" style="display:none">
+          <div class="hint-title">Hint 2 — Unlocked</div>
+          <p><strong>Title:</strong> The Blue Chest</p>
+          <p>Clue A: The lock reacts to cold metal.</p>
+          <p>Clue B: Two numbers add up to the year it was sealed.</p>
+          <p>Clue C: The north face shows the first digit.</p>
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+        <div id="hint3_unlocked" class="view" style="display:none">
+          <div class="hint-title">Hint 3 — Unlocked</div>
+          <p><strong>Title:</strong> The Green Vault</p>
+          <p>Clue A: Mirrors hide the true path.</p>
+          <p>Clue B: The melody repeats after five beats.</p>
+          <p>Clue C: A shadow points to the safe.</p>
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+        <!-- Legacy per-page password forms (left in case you want direct per-page passwords) -->
+        <div id="hint1" class="view" style="display:none" data-pass="red">
+          <div class="hint-title">Puzzle hint — 1</div>
+          <div class="hint-sub">Enter page password to view the unlocked page.</div>
+
+          <div class="locked-overlay">
+            <form class="password-form" onsubmit="return checkPassword(event,'hint1')">
+              <div class="password-row">
+                <input name="pw" placeholder="Enter password" autocomplete="off" required>
+                <button type="submit">Unlock</button>
+              </div>
+            </form>
+
+            <div class="locked-banner" style="display:none">Locked — wrong password. Reload the page to try again.</div>
+          </div>
+
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+        <div id="hint2" class="view" style="display:none" data-pass="blue">
+          <div class="hint-title">Puzzle hint — 2</div>
+          <div class="hint-sub">Enter page password to view the unlocked page.</div>
+
+          <div class="locked-overlay">
+            <form class="password-form" onsubmit="return checkPassword(event,'hint2')">
+              <div class="password-row">
+                <input name="pw" placeholder="Enter password" autocomplete="off" required>
+                <button type="submit">Unlock</button>
+              </div>
+            </form>
+
+            <div class="locked-banner" style="display:none">Locked — wrong password. Reload the page to try again.</div>
+          </div>
+
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+        <div id="hint3" class="view" style="display:none" data-pass="green">
+          <div class="hint-title">Puzzle hint — 3</div>
+          <div class="hint-sub">Enter page password to view the unlocked page.</div>
+
+          <div class="locked-overlay">
+            <form class="password-form" onsubmit="return checkPassword(event,'hint3')">
+              <div class="password-row">
+                <input name="pw" placeholder="Enter password" autocomplete="off" required>
+                <button type="submit">Unlock</button>
+              </div>
+            </form>
+
+            <div class="locked-banner" style="display:none">Locked — wrong password. Reload the page to try again.</div>
+          </div>
+
+          <div class="home-link" onclick="showView('home')">← Back to home</div>
+        </div>
+
+      </main>
+
+      <div class="nav">
+        <a href="#" onclick="showView('home')">Home</a>
+        <a href="#" onclick="showView('password_screen')">Password Panel</a>
+        <a href="#" onclick="showView('hint1_unlocked')">Hint1</a>
+        <a href="#" onclick="showView('hint2_unlocked')">Hint2</a>
+        <a href="#" onclick="showView('hint3_unlocked')">Hint3</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showView(id){
+      document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+      const target = document.getElementById(id);
+      if(target) target.style.display='block';
+      const titleEl = target ? target.querySelector('.hint-title') : null;
+      const title = (id === 'home') ? "Richard's Mistake" : (titleEl ? titleEl.textContent : 'Hint');
+      const pageTitle = document.getElementById('page-title');
+      if(pageTitle) pageTitle.textContent = title;
+
+      // when showing hint views ensure banners/forms are reset
+      if(id && id.startsWith('hint') && id.length<=5){ // only the legacy per-page forms
+        if(!target) return;
+        const banner = target.querySelector('.locked-banner');
+        if(banner) banner.style.display = 'none';
+        const form = target.querySelector('.password-form');
+        if(form){
+          const pwInput = form.querySelector('input[name="pw"]');
+          const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+          if(pwInput) { pwInput.disabled = false; pwInput.value = ''; }
+          if(submitBtn) submitBtn.disabled = false;
+        }
+      }
+    }
+
+    // hook home open
+    document.querySelectorAll('[data-target]').forEach(el=>{
+      el.addEventListener('click',()=>showView(el.dataset.target));
+    });
+
+    // simple code display
+    function onHintAnswer(page,btn){
+      const codes = {1:"PAGE1-CODE-RED-739",2:"PAGE2-CODE-BLUE-442",3:"PAGE3-CODE-GREEN-981"};
+      const code = codes[page];
+      if(code) alert('Code for page '+page+': '+code);
+    }
+
+    // null-safe password check for per-page forms
+    function checkPassword(e, hintId){
+      if(e && e.preventDefault) e.preventDefault();
+      const view = document.getElementById(hintId);
+      if(!view) return false;
+      const expected = view.dataset.pass;
+      const admin = "MASTER-UNLOCK-999";
+      const form = view.querySelector('.password-form');
+      if(!form) return false;
+      const inputEl = form.querySelector('input[name="pw"]');
+      const val = inputEl ? (inputEl.value || '').trim() : '';
+
+      const banner = view.querySelector('.locked-banner');
+
+      if(val === admin || val === expected){
+        showView(hintId + '_unlocked');
+        if(inputEl) inputEl.disabled = true;
+        const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+        if(submitBtn) submitBtn.disabled = true;
+        form.style.display = 'none';
+        if(banner) banner.style.display = 'none';
+      } else {
+        if(banner) banner.style.display = 'block';
+        if(inputEl) inputEl.disabled = true;
+        const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+        if(submitBtn) submitBtn.disabled = true;
+      }
+      return false;
+    }
+
+    // unlockPanel for password screen (null-safe)
+    function unlockPanel(hintId, inputName, btnEl){
+      const panel = document.getElementById('panel-' + hintId);
+      if(!panel) return;
+      const expected = panel.dataset.pass;
+      const admin = "MASTER-UNLOCK-999";
+      const input = panel.querySelector('input[name="' + inputName + '"]');
+      const openBtn = document.getElementById('open_' + hintId + '_btn');
+      const banner = panel.querySelector('.locked-banner');
+      const val = input ? (input.value || '').trim() : '';
+
+      if(val === admin){
+        ['hint1','hint2','hint3'].forEach(id=>{
+          const b = document.getElementById('open_' + id + '_btn'); if(b) b.disabled = false;
+        });
+        document.querySelectorAll('#password_screen .locked-banner').forEach(b=>b.style.display='none');
+        document.querySelectorAll('#password_screen input').forEach(i=>i.disabled=true);
+        document.querySelectorAll('#password_screen button').forEach(b=>b.disabled=false);
+        return;
+      }
+
+      if(val === expected){ if(openBtn) openBtn.disabled = false; if(input) input.disabled = true; if(btnEl) btnEl.disabled = true; if(banner) banner.style.display='none'; }
+      else { if(banner) banner.style.display = 'block'; if(input) input.disabled = true; if(btnEl) btnEl.disabled = true; if(openBtn) openBtn.disabled = true; }
+    }
+
+    // initialize
+    showView('home');
+  </script>
+</body>
+</html>
